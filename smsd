@@ -1,0 +1,27 @@
+require 'bundler'
+Bundler.setup
+
+require 'smqueue'
+require 'aql_sms_api'
+require 'yajl/json_gem'
+
+puts "Setting credentials"
+AQL::SMS.authenticate :username => ARGV[0], :password => ARGV[1]
+puts "Connecting to broker host: #{ARGV[2]}, name: #{ARGV[3]}"
+notification = SMQueue(:configuration => {
+  :host => ARGV[2],
+  :name => ARGV[3],
+  :client_id => File.basename($0) + '-' + Process.pid.to_s,
+  :adapter => :StompAdapter
+})
+puts "Staring loop"
+notification.get do |message|
+  json = JSON.parse message.body
+  destination_numbers = json['destination_numbers']
+  message = json['message']
+  puts "Sending \"#{json['message']}\" to #{destination_numbers.join(', ')}"
+  response = AQL::SMS.send_message destination_numbers, message
+  response_details = [ response.code, response.credits, response.message ]
+  puts "Response: %s: %s \"%s\"" % response_details
+end
+puts "Exiting :("

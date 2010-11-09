@@ -1,0 +1,27 @@
+GIT
+  remote: git://github.com/craigw/smqueue.git
+  revision: 5c9fe1100d5969743c934cbca7718b8166a186cf
+  ref: 5c9fe1100d5969743c934cbca7718b8166a186cf
+  branch: dont-disconnect-stomp
+  specs:
+    smqueue (0.3.0)
+      doodle (>= 0.1.9)
+
+GEM
+  remote: http://rubygems.org/
+  specs:
+    aql_sms_api (0.2.0)
+      httparty (>= 0.5.2)
+    crack (0.1.8)
+    doodle (0.2.3)
+    httparty (0.6.1)
+      crack (= 0.1.8)
+    yajl-ruby (0.7.8)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  aql_sms_api (= 0.2.0)
+  smqueue (= 0.3.0)!
+  yajl-ruby (= 0.7.8)
