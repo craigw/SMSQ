@@ -1,6 +1,8 @@
 STDOUT.sync = true
 STDERR.sync = true
 
+BATCH_SIZE = 8
+
 require 'bundler'
 Bundler.setup
 
@@ -20,11 +22,21 @@ notification = SMQueue(:configuration => {
 puts "Staring loop"
 notification.get do |message|
   json = JSON.parse message.body
-  destination_numbers = json['destination_numbers']
   message = json['message']
-  puts "Sending \"#{json['message']}\" to #{destination_numbers.join(', ')}"
-  response = AQL::SMS.send_message destination_numbers, message
-  response_details = [ response.code, response.credits, response.message ]
-  puts "Response: %s: %s \"%s\"" % response_details
+  destination_numbers = json['destination_numbers']
+  batches = (destination_numbers.size.to_f / BATCH_SIZE).ceil
+  batch = 1
+  while destination_numbers.any?
+    send_to = []
+    BATCH_SIZE.times { send_to << destination_numbers.pop }
+    send_to.compact!
+    send_to.uniq!
+    puts "[#{batch}/#{batches}] Sending \"#{json['message']}\" to #{send_to.join(', ')}"
+    response = AQL::SMS.send_message send_to, message
+    response_details = [ response.code, response.credits, response.message ]
+    puts "[#{batch}/#{batches}] Response: %s: %s \"%s\"" % response_details
+    batch += 1
+  end
+  puts "Message sent to #{destination_numbers} in #{batches} batches of #{BATCH_SIZE}"
 end
 puts "Exiting :("
