@@ -24,11 +24,12 @@ notification.get do |message|
   json = JSON.parse message.body
   message = json['message']
   destination_numbers = json['destination_numbers']
+  remaining_numbers = destination_numbers.dup
   batches = (destination_numbers.size.to_f / BATCH_SIZE).ceil
   batch = 1
-  while destination_numbers.any?
+  while remaining_numbers.any?
     send_to = []
-    BATCH_SIZE.times { send_to << destination_numbers.pop }
+    BATCH_SIZE.times { send_to << remaining_numbers.pop }
     send_to.compact!
     send_to.uniq!
     puts "[#{batch}/#{batches}] Sending \"#{json['message']}\" to #{send_to.join(', ')}"
@@ -37,6 +38,6 @@ notification.get do |message|
     puts "[#{batch}/#{batches}] Response: %s: %s \"%s\"" % response_details
     batch += 1
   end
-  puts "Message sent to #{destination_numbers} in #{batches} batches of #{BATCH_SIZE}"
+  puts "Message sent to #{destination_numbers.size} destinations in #{batches} batches of #{BATCH_SIZE}"
 end
 puts "Exiting :("
